@@ -18,3 +18,8 @@ else()
     message( WARNING "cmake/client.cmake not found")
 endif()
 
+
+add_subdirectory(client)
+add_subdirectory(server)
+
+
