@@ -14,8 +14,8 @@
 
 namespace audio {
     class Istream {
-        //protected:
-         //   using func_cb_stream = func_callback<void, size_t, void*>;
+        protected:
+           using func_cb_stream = func_callback<void, size_t, void*>;
         public:    
             virtual ~Istream() = 0;
             virtual void connect() = 0;
@@ -34,15 +34,13 @@ namespace audio {
                 sample_spec = {PA_SAMPLE_S16BE, 44100, 2};
             }
 
-            template <typename ... Args
-             , typename = std::enable_if_t< std::conjunction_v< std::is_enum<Args>... > > > 
-            inline void
-            set_channel_map(uint8_t n, Args ... args) 
+            template <typename ... Args, 
+                    typename = std::enable_if_t< std::conjunction_v< std::is_enum<Args>... > > > 
+            inline void set_channel_map(uint8_t n, Args ... args) 
             {
+                std::memset(channel_map, 0, sizeof(pa_channel_map);
                 channel_map = {n, (args, ...) };
             }
-
-            
 
         private:
             pa_sample_spec sample_spec;
@@ -59,8 +57,3 @@ enum class R {
     G, S, Y
 };
 
-int main(int argc, char** argv) {
-    audio::Ipulse_stream pulse_audio;
-    pulse_audio.set_channel_map(8, PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT);
-    return 0;
-}
