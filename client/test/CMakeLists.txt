@@ -1,6 +1,3 @@
-
-
-
 include(FetchContent)
 
 FetchContent_Declare(
@@ -28,5 +25,5 @@ target_link_libraries(
 )
 
 include(GoogleTest)
-gtest_discover_tests(test_module_context)
 
+gtest_discover_tests(test_module_context)
