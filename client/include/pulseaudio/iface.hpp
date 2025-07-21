@@ -1,0 +1,2 @@
+
+#include <pulseaudio/stream.hpp>

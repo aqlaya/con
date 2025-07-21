@@ -33,11 +33,11 @@ endif()
 #libopus
 if ( CMAKE_INCLUDE_OPUS )
     file(GLOB SOURCES_OPUS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc")
-    add_executable(voice_record ${INCLUDE_SOURCE}/voice.cc)
-
+    add_executable(voice_record ${INCLUDE_SOURCE}/main.cc)
+    target_compile_definitions(voice_record PUBLIC PULSE_AUDIO_LOG)
     target_link_libraries(voice_record PRIVATE pulse)
-
     target_include_directories(voice_record PUBLIC ${INCLUDE_PATH})    
+
 endif()
 
 
