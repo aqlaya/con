@@ -29,6 +29,8 @@ namespace audio {
     };
 
     class Pulse_Icontext: public Icontext {
+        protected:
+
         public:
             Pulse_Icontext( Imainloop* mainloop, const char* name) noexcept:
                 c( pa_context_new( mainloop->get_api(), name ))
@@ -74,7 +76,7 @@ namespace audio {
                __pulse_debug_destruct( typeid(this).name());
             } 
         private:
-            void set_callback( func_callback_context func) const noexcept override  {
+            void set_callback( func_callback_context func) const noexcept  {
                 pa_context_set_state_callback( this->c, func, NULL);
             }     
 
