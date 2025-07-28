@@ -45,6 +45,16 @@ namespace audio {
                 return sample_spec;
             }
 
+            static inline pa_sample_spec 
+            set_sample_spec_deffault() noexcept 
+            {
+                return set_sample_spec(
+                    PA_SAMPLE_S16BE, 
+                    44100,
+                    2   
+                );
+            }
+
             template <typename ... Args, 
             std::enable_if_t< std::conjunction_v< std::is_enum<Args>... >, int> = 0>
             static inline pa_channel_map
@@ -54,6 +64,15 @@ namespace audio {
                 std::memset(&channel_map, 0, sizeof(channel_map));
                 channel_map = {n, (... , args)}; 
                 return channel_map;
+            }
+
+            static inline pa_channel_map
+            set_channel_map_deffault() noexcept 
+            {
+                return set_channel_map(2, 
+                    PA_CHANNEL_POSITION_FRONT_LEFT, 
+                    PA_CHANNEL_POSITION_FRONT_RIGHT
+                );
             }
 
             template <typename ... Args, std::enable_if_t< 
@@ -69,17 +88,22 @@ namespace audio {
             {
                 __pulse_debug_construct( "Ipulse_stream" );
             }
-
-            inline Ipulse_stream(Pulse_Icontext* context, const char* name, 
-                pa_sample_spec sample_spec, pa_channel_map channel_map)
-               : Istream(context)
-               , sample_spec(sample_spec)
                , channel_map(channel_map)
                , pcm_stream( pa_stream_new( context->get_context(),
                                             name,  
                                             &sample_spec, &channel_map ) )
             {
                 __pulse_debug_construct( typeid(this).name() );    
+            }
+
+            inline Ipulse_stream(Pulse_Icontext* context, const char* name, 
+                pa_sample_spec sample_spec, pa_channel_map map)
+            : Istream(context)
+            , sample_spec( sample_spec)
+            , channel_map( map)
+            , pcm_stream( pa_stream_new( context->get_context(), name, &sample_spec, &channel_map))
+            {
+                __pulse_debug_construct("Ipulse_stream");
             }
             ~Ipulse_stream() override {
                 pa_stream_unref(pcm_stream);
@@ -120,6 +144,7 @@ namespace audio {
         private:
             using func_cb_playback  = void(*)(pa_stream*, size_t, void*);
         public:
+            inline
             pulse_stream_playback(Pulse_Icontext* context, const char* name,
                     pa_sample_spec sample_spec, pa_channel_map channel_map) 
             : Ipulse_stream( context, name, sample_spec, channel_map) 
@@ -131,6 +156,17 @@ namespace audio {
                 /* set of deffault */
                 size_buffer_attr.maxlength = -1;
                 size_buffer_attr.fragsize = 1 << 16;
+            }
+
+            /* simple constructor with deffault arguments */
+            inline
+            pulse_stream_playback(Pulse_Icontext* context, const char* name)
+                : pulse_stream_playback( context, name, 
+                                set_sample_spec_deffault(),
+                                set_channel_map_deffault()
+                )
+            {
+                __pulse_debug_construct("pulse_stream_playback");
             }
 
             void connect() const override {
@@ -182,6 +218,15 @@ namespace audio {
                 size_buffer_attr.fragsize = 1 << 16;
             }
 
+            /* simple constructor with deffault agrs */
+            inline pulse_stream_record(Pulse_Icontext* context, const char* name)
+                : pulse_stream_record(context, name,
+                    set_sample_spec_deffault(),
+                    set_channel_map_deffault()
+                )
+            {
+                __pulse_debug_construct("pulse_stream_record");
+            }
 
             void connect() const override {
 
@@ -195,7 +240,7 @@ namespace audio {
                 __pulse_debug_log("[[Record stream]]", "Successfuly connect");
             }
             ~pulse_stream_record() override {
-                __pulse_debug_destruct( "pulse_stream");
+                __pulse_debug_destruct( "pulse_stream_record");
                 pa_stream_disconnect(pcm_stream);
             }
         private:

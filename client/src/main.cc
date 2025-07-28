@@ -47,6 +47,12 @@ int main( int argc, char** argv ) {
         audio::Ipulse_stream::set_channel_map(2, PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT)
     );
 
+    audio::pulse_stream_playback playback(
+        &context,
+        "My first playback",
+        audio::Ipulse_stream::set_sample_spec(PA_SAMPLE_S16BE)
+    );
+
     record.connect();
 
     loop.run();
