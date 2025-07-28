@@ -7,8 +7,6 @@ set(INCLUDE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(PATH_TEST ${CMAKE_CURRENT_SOURCE_DIR}/test)
 
-
-
 #tests (Google test)
 include( test/CMakeLists.txt)
 
@@ -37,7 +35,6 @@ if ( CMAKE_INCLUDE_OPUS )
     target_compile_definitions(voice_record PUBLIC PULSE_AUDIO_LOG)
     target_link_libraries(voice_record PRIVATE pulse)
     target_include_directories(voice_record PUBLIC ${INCLUDE_PATH})    
-
 endif()
 
 

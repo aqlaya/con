@@ -93,19 +93,19 @@ namespace audio {
             static inline void callback_state(pa_stream* stream, void* userdata) {
                 switch ( pa_stream_get_state(stream) ) {
                     case PA_STREAM_UNCONNECTED:
-                        __pulse_debug_log("[[Audio stream]]", "PA_STREAM_UNCONNECTED");
+                        __pulse_debug_log("[[Audio stream]]", "stream unconnected");
                         break;
                     case PA_STREAM_CREATING:
-                        __pulse_debug_log("[[Audio stream]]", "PA_STREAM_CREATING");
+                        __pulse_debug_log("[[Audio stream]]", "stream creating");
                         break;
                     case PA_STREAM_READY:
-                        __pulse_debug_log("[[Audio stream]]", "PA_STREAM_READY");
+                        __pulse_debug_log("[[Audio stream]]", "stream ready");
                         break;
                     case PA_STREAM_FAILED:
-                        __pulse_debug_log("[[Audio stream]]", "PA_STREAM_FAILED");
+                        __pulse_debug_log("[[Audio stream]]", "stream failed");
                         break;
                     case PA_STREAM_TERMINATED:  
-                        __pulse_debug_log("[[Audio stream]]", "PA_STREAM_TERMINATED");
+                        __pulse_debug_log("[[Audio stream]]", "stream terminated");
                         break;
                 }
             }
@@ -133,6 +133,16 @@ namespace audio {
                 size_buffer_attr.fragsize = 1 << 16;
             }
 
+            void connect() const override {
+                set_callback(callback_state, NULL);
+                if ( pa_stream_connect_playback( pcm_stream, NULL, 
+                        &size_buffer_attr, PA_STREAM_NOFLAGS, NULL, NULL)  != 0) {  
+                            std::runtime_error("***Playback can't connect***");
+                            __pulse_debug_log("[[Playback stream]]", "can't connect");
+                } 
+                __pulse_debug_log("[[Playback stream]]", "Successfuly connect");
+            }
+
             ~pulse_stream_playback() override {
                 __pulse_debug_destruct("pulse_stream_playback");
                 pa_stream_disconnect(pcm_stream);
@@ -142,6 +152,12 @@ namespace audio {
             inline void set_callback_playback( func_cb_playback func, 
                                                     void* pointer) const {
                 pa_stream_set_write_callback( pcm_stream, func, pointer);
+            }
+
+            static void callback_playback(pa_stream*, size_t nbytes, void*) {
+                if (nbytes == 0) {
+                    __pulse_debug_log("[[Playback stream]]", "Zero nbytes");
+                }
             }
 
         private:
@@ -174,23 +190,20 @@ namespace audio {
                 if ( pa_stream_connect_record(pcm_stream, 
                     NULL, NULL, PA_STREAM_NOFLAGS) != 0 ) {
                        throw std::runtime_error("***Record Stream can't connect***");
-                    __pulse_debug_log("[[Record stream]]", "Don't connect");
+                       __pulse_debug_log("[[Record stream]]", "Don't connect");
                 } 
                 __pulse_debug_log("[[Record stream]]", "Successfuly connect");
             }
-
             ~pulse_stream_record() override {
                 __pulse_debug_destruct( "pulse_stream");
                 pa_stream_disconnect(pcm_stream);
             }
-
         private:
             inline void
             set_callback_record( func_cb_record func, void* pointer) const noexcept
             {
                 /* link stream to function */
                 pa_stream_set_read_callback( pcm_stream, func, pointer );
-
             }
 
             static void 
