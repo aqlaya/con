@@ -1,9 +1,12 @@
 cmake_minimum_required( VERSION 3.16)
 
-project( con VERSION 1.0 LANGUAGES CXX C)
-
+set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "C++ compiler" FORCE)
+set(CMAKE_C_COMPILER "clang" CACHE STRING "C compiler" FORCE)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD  11)
+
+project( con VERSION 1.0 LANGUAGES CXX C)
+
 
 set(BOOST_PATH ${CMAKE_SOURCE_DIR}/lib/asio)
 set( OPUS_PATH ${CMAKE_SOURCE_DIR}/lib/opus/include )

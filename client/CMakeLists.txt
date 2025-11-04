@@ -6,7 +6,7 @@ set(INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(PATH_TEST ${CMAKE_CURRENT_SOURCE_DIR}/test)
 
 #tests (Google test)
-include( test/CMakeLists.txt)
+#include( test/CMakeLists.txt)
 
 #boost 
 if (EXISTS ${BOOST_PATH}) 

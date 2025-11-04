@@ -64,15 +64,10 @@ int main( int argc, char** argv ) {
         loop.iterate();
     }
 
-
-    buff = new char[size];
-
-    for (size_t i = 0; i < size; ++i) {
-        buff[i] = rand() % (1 << 10) + (1 << 10);
-    }
-
-    playback.write( buff, size );
-
+    const char* buffer;
+    size_t bytes;
+    record.read(buffer, bytes);
+ 
     loop.run();
 
 
@@ -122,5 +117,3 @@ int main( int argc, char** argv ) {
 
     return 0;
 }
-
-

@@ -1,8 +1,6 @@
 #pragma once
-
-#include <type_traits>
-#include <string>
 #include <iostream>
+#include <type_traits>
 
 #if defined (PULSE_AUDIO_LOG) 
     inline void __pulse_debug_log(const char* value) { std::cerr << value; }
