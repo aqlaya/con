@@ -6,6 +6,14 @@
 
 namespace audio {
 
+    /* needle concepts */
+    namespace detail {
+        template < typename T>
+        concept PulseStream = std::is_same_v<T, pa_stream>;
+
+        template <typename T>
+        concept PulseContext = std::is_same_v<T, pa_context>;
+    }
     /* interface some callback function, which defined to pulseaudioi api */
     template <typename ...Args>
     class Icallback {
@@ -15,51 +23,48 @@ namespace audio {
         Icallback() = default; 
     };
 
-
     /* interface for Pulse_Obj */
     template <typename PulseObj >
     class state_callback: public Icallback<PulseObj*, void*> {
-    public:
-
-        inline void operator()(PulseObj* obj, void*) const override;
-        inline decltype(auto) operator*() const {
-            return &operator();
-        }
-        /* expilicitly declare default contsturcor (not touch) */
-        state_callback() = default;
-    };
-
-    template <typename PulseObj>
-    inline void state_callback<PulseObj>::operator()(PulseObj* obj, void*) const {
-
-    }
-
-    template <>
-    class state_callback<pa_stream>: public Icallback<pa_stream*, void*> {
-    public:
-        /* expilicitly declare default contsturcor (not touch) */
-        state_callback() = default;
-    };
-
-    namespace detail {
-        template < typename T>
-        concept PulseStream = std::is_same_v<T, pa_stream>;
-
-        template <typename T>
-        concept PulseContext = std::is_same_v<T, pa_context>;
-    }
-
-    template <>
-    class state_callback<pa_context>: public Icallback<pa_context*, void*> {
-    public:
-        inline void operator()( pa_context* obj, void* userdata) const override {
+    protected:
+        inline void get_state_for_context(PulseObj* obj, void*) {
             if  ( pa_context_get_state( obj) != PA_CONTEXT_READY ) {
                 __pulse_debug_log("[[Audio context]]", "connection is not ready");
             } 
             __pulse_debug_log("[[Audio context]]",  "connection is succesfuly");
         }
 
-
+        inline void get_state_for_stream(PulseObj* obj, void*) {
+            switch ( pa_stream_get_state( obj ) ) {
+                case PA_STREAM_UNCONNECTED:
+                    __pulse_debug_log("[[Audio stream]]", "stream unconnected");
+                    break;
+                case PA_STREAM_CREATING:
+                    __pulse_debug_log("[[Audio stream]]", "stream creating");
+                    break;
+                case PA_STREAM_READY:
+                    __pulse_debug_log("[[Audio stream]]", "stream ready");
+                    break;
+                case PA_STREAM_FAILED:
+                    __pulse_debug_log("[[Audio stream]]", "stream failed");
+                    break;
+                case PA_STREAM_TERMINATED: 
+                    __pulse_debug_log("[[Audio stream]]", "stream terminated");
+                    break;
+            }
+        }
+    public:
+        inline void operator()(PulseObj* obj, void*) const override {
+            if constexpr ( detail::PulseStream<PulseObj> ) {
+                get_state_for_context();
+            }
+            else {
+                get_state_for_stream();
+            }
+        } 
+        inline decltype(auto) operator*() const {
+            return &operator();
+        }
         /* expilicitly declare default contsturcor (not touch) */
         state_callback() = default;
     };
