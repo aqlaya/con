@@ -1,5 +1,3 @@
-
-
 set(CMAKE_INCLUDE_GUI OFF)
 set(CMAKE_INCLUDE_OPUS ON)
 
@@ -28,15 +26,10 @@ if ( CMAKE_INCLUDE_GUI )
     target_sources(${PROJECT_NAME} PRIVATE ${AppResources})
 endif()
 
-#libopus
+#libpulse
 if ( CMAKE_INCLUDE_OPUS )
-    file(GLOB SOURCES_OPUS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc")
     add_executable(voice_record ${INCLUDE_SOURCE}/main.cc)
     target_compile_definitions(voice_record PUBLIC PULSE_AUDIO_LOG)
     target_link_libraries(voice_record PRIVATE pulse)
-    target_include_directories(voice_record PUBLIC ${INCLUDE_PATH})    
+    target_include_directories(voice_record PUBLIC ${INCLUDE_PATH})
 endif()
-
-
-
- 

@@ -1,4 +1,5 @@
 #include <pulseaudio/iface.hpp>
+#include <cstdlib>
 
 static void stream_read_callback(pa_stream *stream, size_t nbytes, void *userdata) {
     const void *data;
@@ -20,6 +21,8 @@ void handle_callback( pa_context *context, void *userdata) {
 }
 
 
+char* buff;
+size_t size = (1 << 16);
 void stream_callback(pa_stream* c, void* userdata) {
     if (pa_stream_get_state(c) != PA_STREAM_READY) {
         std::cerr << "Stream ready!" << std::endl;
@@ -40,7 +43,7 @@ int main( int argc, char** argv ) {
         loop.iterate();
     }
 
-    audio::pulse_stream_record record( 
+    audio::pulse_stream_record record (
         &context, 
         "My first record", 
         audio::Ipulse_stream::set_sample_spec(PA_SAMPLE_S16BE, 44100, 2),
@@ -50,10 +53,25 @@ int main( int argc, char** argv ) {
     audio::pulse_stream_playback playback(
         &context,
         "My first playback",
-        audio::Ipulse_stream::set_sample_spec(PA_SAMPLE_S16BE)
+        audio::Ipulse_stream::set_sample_spec(PA_SAMPLE_S16BE, 44100, 2),
+        audio::Ipulse_stream::set_channel_map(2, PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT)
     );
 
+    playback.connect();
     record.connect();
+
+    while ( !playback.is_ready()  && !record.is_ready() )  {
+        loop.iterate();
+    }
+
+
+    buff = new char[size];
+
+    for (size_t i = 0; i < size; ++i) {
+        buff[i] = rand() % (1 << 10) + (1 << 10);
+    }
+
+    playback.write( buff, size );
 
     loop.run();
 

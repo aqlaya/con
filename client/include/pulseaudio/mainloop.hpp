@@ -2,6 +2,7 @@
 
 #include <pulse/pulseaudio.h>
 
+#include <pulseaudio/callback.hpp>
 #include <pulseaudio/real.hpp>
 
 #include <iostream>
@@ -21,23 +22,19 @@ namespace audio {
 
     class mainloop final: public Imainloop {
         public:
-
             mainloop(): loop( pa_mainloop_new() ) {
                 __pulse_debug_construct(typeid(this).name());
             }
-
             void run() const override /* exception runtime_error */ {
                 if ( pa_mainloop_run(loop, NULL) < 0 ) {    
                     throw std::runtime_error("***Fails mainloop run***");
                 }
             }
-
             void iterate() const /* std::runtime_error */ {
                 if ( pa_mainloop_iterate( loop, 1, NULL) < 0 ) {
                     std::runtime_error("***Fails mainloop iterate***");
                 }
             }
-
             pa_mainloop_api* get_api() const override {
                 return pa_mainloop_get_api(loop);
             }

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <pulse/pulseaudio.h>
 
 #include <pulseaudio/mainloop.hpp>
+#include <pulseaudio/callback.hpp>
 
 #include <iostream>
 #include <functional>
@@ -29,8 +29,6 @@ namespace audio {
     };
 
     class Pulse_Icontext: public Icontext {
-        protected:
-
         public:
             Pulse_Icontext( Imainloop* mainloop, const char* name) noexcept:
                 c( pa_context_new( mainloop->get_api(), name ))
@@ -82,7 +80,7 @@ namespace audio {
 
             static void 
             callback_context(pa_context* c, void* userdata) /* runtime_error */ {
-                const auto start_time  = std::chrono::steady_clock::now();
+               const auto start_time  = std::chrono::steady_clock::now();
                 if  ( pa_context_get_state(c) != PA_CONTEXT_READY ) {
                     __pulse_debug_log("[[Audio context]]", "connection is not ready");
                 }    

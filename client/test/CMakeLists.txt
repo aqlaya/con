@@ -16,10 +16,22 @@ add_executable(
   ${PATH_TEST}/context.cpp
 )
 
+add_executable( 
+  test_module_callback 
+  ${PATH_TEST}/callback.cpp
+)
+
+target_include_directories(test_module_context PUBLIC ${INCLUDE_PATH} )
 target_include_directories(test_module_context PUBLIC ${INCLUDE_PATH} )
 
 target_link_libraries(
   test_module_context PUBLIC
+  GTest::gtest_main
+  pulse
+)
+
+target_link_libraries(
+  test_module_callback PUBLIC
   GTest::gtest_main
   pulse
 )
