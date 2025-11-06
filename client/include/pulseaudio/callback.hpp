@@ -8,41 +8,34 @@ namespace audio {
 
     /* interface some callback function, which defined to pulseaudioi api */
     template <typename ...Args>
-    class Icallback {
-    private:
+    class callback {
+    public:
         using Funcptr = void(*)(Args ...);
     public:
-        virtual void operator()(Args... args)  = 0;  
-        virtual Funcptr operator&() = 0;
+        inline void operator()(Args... args) {
+            (*func)(args...);
+        }
+        explicit callback(Funcptr func ): func(func) {}
+
+        inline Funcptr operator&() {
+            return func;
+        }
+    protected:
+        Funcptr func;
     };
 
     /* interface for Pulse_Obj */
     template <typename PulseObj >
-    class state_callback: public Icallback<PulseObj*, void*> {
-    private:
-        using Funcptr = void(*)(PulseObj*, void*);
+    class state_callback: public callback<PulseObj*, void*> {
     public:
         /* plug function */
         inline void operator()(PulseObj* obj, void*) const override {} 
-
-        inline Funcptr operator&() override {
-            return nullptr;
-        }
-
     };
 
     template <>
-    class state_callback<pa_context>: public Icallback<pa_context*, void*> {
-    private:
-        using Funcptr = void(*)(pa_context*, void*);
+    class state_callback<pa_context>: public callback<pa_context*, void*> {
     public:
-        inline void operator()(pa_context* obj, void* userdata)  override {
-            first_startegy_state(obj, userdata);
-        }
-
-        inline Funcptr operator&() override {
-            return &first_startegy_state;
-        }
+        state_callback(): callback( &first_startegy_state) {}
     private:
         static void first_startegy_state( pa_context* obj, void* userdata ) {
             if  ( pa_context_get_state( obj) != PA_CONTEXT_READY ) {
@@ -53,17 +46,9 @@ namespace audio {
     };
 
     template <>
-    class state_callback<pa_stream>: public Icallback<pa_stream*, void*> {
-    private:
-        using Funcptr = void(*)(pa_stream*, void*);
+    class state_callback<pa_stream>: public callback<pa_stream*, void*> {
     public:
-        inline void operator()(pa_stream* obj, void* userdata)  override {
-            first_startegy_state(obj, userdata);
-        }
-
-        inline Funcptr operator&() override {
-            return nullptr;
-        }
+        state_callback(): callback( &first_startegy_state )  {}
     private:
         static void first_startegy_state( pa_stream* obj, void* userdata ) {
             switch ( pa_stream_get_state( obj ) ) {
@@ -86,42 +71,13 @@ namespace audio {
         }
     };
 
-    class playback_callback: public Icallback<pa_stream*, size_t, void*> {
-    private:
-        using Funcptr = void(*)(pa_stream*, size_t, void*);
+    class playback_callback: public callback<pa_stream*, size_t, void*> {
     public:
-        inline void operator()( pa_stream* obj, size_t nbytes, void* userdata)  override {
-            first_stagery_playback( obj, nbytes, userdata);
-        } 
-        inline Funcptr operator&() override {
-            return &first_stagery_playback;
-        }
-    private:
-        static void first_stagery_playback(pa_stream* obj, size_t nbytes, void* userdata) {
-            if (nbytes == 0) {
-                __pulse_debug_log("[[Playback stream]]", "Zero nbytes");
-            }
-        }
+        explicit playback_callback(Funcptr func): callback(func) {}
     };
 
-    class record_callback: public Icallback<pa_stream*, size_t, void*> {
-    private:
-        using Funcptr = void(*)(pa_stream*, size_t, void*);
+    class record_callback: public callback<pa_stream*, size_t, void*> {
     public:
-        inline void operator()(pa_stream* obj, size_t nbytes, void* userdata)  override {
-            first_stagery_record( obj, nbytes, userdata);
-        }
-
-        inline Funcptr operator&() override {
-            return first_stagery_record;
-        }
-    private:
-        static void first_stagery_record(pa_stream* obj, size_t nbytes, void* userdata) {
-            if (nbytes == 0) {
-                __pulse_debug_log("[[Record stream]]", "Data sizes: 0"); 
-            } else {
-                __pulse_debug_log("[[Record stream]]", "Data sizes: 10"); 
-            }
-        }
+        explicit record_callback(Funcptr func): callback(func) {}
     };
 };

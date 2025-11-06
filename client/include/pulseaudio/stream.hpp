@@ -122,12 +122,16 @@ namespace audio {
 
     class pulse_stream_playback final : public Ipulse_stream {
         public:
-
             inline
-            pulse_stream_playback(Pulse_Icontext* context, const char* name,
-                    pa_sample_spec sample_spec, pa_channel_map channel_map) 
+            pulse_stream_playback
+                (Pulse_Icontext* context
+                , const char* name
+                , pa_sample_spec sample_spec
+                , pa_channel_map channel_map
+                , playback_callback::Funcptr func)
             : Ipulse_stream( context, name, sample_spec, channel_map) 
-            {     
+            , _playback_callback( func )
+            { 
                 __pulse_debug_construct( "pulse_stream_playback" );
 
                 std::memset( &size_buffer_attr, 0, sizeof( size_buffer_attr));
@@ -139,10 +143,13 @@ namespace audio {
 
             /* simple constructor with deffault arguments */
             inline
-            pulse_stream_playback(Pulse_Icontext* context, const char* name)
-                : pulse_stream_playback( context, name, 
-                                set_sample_spec_deffault(),
-                                set_channel_map_deffault()
+            pulse_stream_playback(Pulse_Icontext* context, const char* name, playback_callback::Funcptr func)
+                : pulse_stream_playback
+                    ( context
+                    , name
+                    , set_sample_spec_deffault()
+                    , set_channel_map_deffault()
+                    , func
                 )
             {
                 __pulse_debug_construct("pulse_stream_playback");
@@ -190,8 +197,9 @@ namespace audio {
     class pulse_stream_record final: public Ipulse_stream {
         public:
             inline pulse_stream_record(Pulse_Icontext* context, const char* name, 
-                pa_sample_spec sample_spec, pa_channel_map channel_map)
+                pa_sample_spec sample_spec, pa_channel_map channel_map, record_callback::Funcptr func )
             : Ipulse_stream( context, name, sample_spec, channel_map)
+            , _record_callback( record_callback( func) )
             {
                 __pulse_debug_construct( "pulse_stream_record" );
 
@@ -204,10 +212,13 @@ namespace audio {
             }
 
             /* simple constructor with deffault agrs */
-            inline pulse_stream_record(Pulse_Icontext* context, const char* name)
-                : pulse_stream_record(context, name,
+            inline pulse_stream_record(Pulse_Icontext* context, const char* name, record_callback::Funcptr func)
+                : pulse_stream_record(
+                    context,
+                    name,
                     set_sample_spec_deffault(),
-                    set_channel_map_deffault()
+                    set_channel_map_deffault(),
+                    func
                 )
             {
                 __pulse_debug_construct("pulse_stream_record");
@@ -230,9 +241,15 @@ namespace audio {
             }
 
             /* TODO */
-            void read(const void* buffer, size_t bytes) const {
-                int ret = pa_stream_peek(pcm_stream, &buffer, &bytes );
+            void read(const void* buffer, size_t& bytes) const {
+                if (pa_stream_peek(pcm_stream, &buffer, &bytes ) < 0) 
+                    throw std::runtime_error("***Record stream can't peek***");
             }
+            void drop() {
+                if (pa_stream_drop(pcm_stream) < 0) 
+                    throw std::runtime_error("***Record stream can't drop***");
+            }
+            /* TODO */
 
             ~pulse_stream_record() override {
                 __pulse_debug_destruct( "pulse_stream_record");

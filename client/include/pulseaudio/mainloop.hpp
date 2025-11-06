@@ -30,7 +30,7 @@ namespace audio {
                     throw std::runtime_error("***Fails mainloop run***");
                 }
             }
-            void iterate() const /* std::runtime_error */ {
+            void iterate() const override /* std::runtime_error */ {
                 if ( pa_mainloop_iterate( loop, 1, NULL) < 0 ) {
                     std::runtime_error("***Fails mainloop iterate***");
                 }

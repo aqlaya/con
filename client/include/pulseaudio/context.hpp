@@ -39,7 +39,7 @@ namespace audio {
                 return pa_context_get_state( this->c ); 
             }
 
-            bool is_ready() const noexcept {
+            bool is_ready() const noexcept override {
                 return get_state() == PA_CONTEXT_READY;
             }
         protected:
